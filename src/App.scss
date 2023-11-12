@@ -1,0 +1,17 @@
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/Inter-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Kharkiv';
+  src: url('./assets/Kharkiv.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.body {
+  font-family: 'Kharkiv', sans-serif;
+}

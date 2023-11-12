@@ -7,12 +7,35 @@
     "withGlobalTauri": false
   },
   "package": {
-    "productName": "asteria-launcher",
+    "productName": "Asteria Craft",
     "version": "0.0.0"
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": true,
+      "shell": {
+        "all": true,
+        "execute": true,
+        "open": true,
+        "scope": [
+          {
+            "name": "installJavaWin",
+            "cmd": "msiexec",
+            "args": ["/i", { "validator": "\\S+" },  "/passive"]
+          },
+          {
+            "name": "installJavaDarwin",
+            "cmd": "installer",
+            "args": ["-pkg", { "validator": "\\S+" },  "-target /", "/passive"]
+          },
+          {
+            "name": "installJavaLinux",
+            "cmd": "dpkg",
+            "args": ["-i", { "validator": "\\S+" },  "/passive"]
+          }
+        ],
+        "sidecar": true
+      }
     },
     "bundle": {
       "active": true,
@@ -29,6 +52,18 @@
     "security": {
       "csp": null
     },
+    "updater": {
+      "windows": {
+        "installMode": "passive"
+      },
+      "active": true,
+      "endpoints": [
+        "https://api.vd.lutsk.ua/app/update?current_version={{current_version}}&target={{target}}&arch={{arch}}"
+        ],
+      "dialog": false,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCM0ZDMzBEMzQ1RTJCMEYKUldRUEsxNDBEY00vMitzV3RvTGh2K0dYMk8zOS9jSVA4bnRDU3VwcXpHMng5R1RtSHFzU0UzRGoK"
+    },
+    
     "windows": [
       {
         "fullscreen": false,
@@ -36,11 +71,12 @@
         "center": true,
         "transparent": true,
         "alwaysOnTop": true,
+        "visible": false,
         "focus": true,
         "decorations": false,
-        "title": "asteria-launcher",
-        "width": 300,
-        "height": 200
+        "title": "Asteria Craft",
+        "width": 700,
+        "height": 400
       }
     ]
   }

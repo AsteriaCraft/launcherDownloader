@@ -9,6 +9,15 @@ use walkdir::WalkDir;
 use serde::{Serialize};
 use window_shadows::set_shadow;
 
+static mut GLOBAL_DOM_READY: bool = false;
+
+#[tauri::command]
+fn dom_started() {
+    unsafe {
+        GLOBAL_DOM_READY = true;
+    }
+}
+
 #[derive(Serialize)]
 struct JavaVersion {
     path: String,
@@ -98,7 +107,14 @@ fn get_all_java_versions() -> Result<Vec<JavaVersion>, String> {
             let java_path = get_java_path(java_dir, java_loc);
            
             if java_path.exists() {
-                let java_cmd = Command::new(java_path).arg("-version").output();
+                let mut java_com = Command::new(java_path);
+                java_com.arg("-version");
+                #[cfg(windows)]
+                {
+                    use std::os::windows::process::CommandExt;
+                    java_com.creation_flags(0x08000000); // CREATE_NO_WINDOW
+                }
+                let java_cmd = java_com.output();
                 match java_cmd {
                     Ok(output) => {
                         let stdout = String::from_utf8_lossy(&output.stderr);
@@ -158,12 +174,20 @@ fn get_java_path(java_dir: &str, java_loc: &str) -> PathBuf {
 fn main() {
     tauri::Builder::default().setup(|app| {
         let main_window = app.get_window("main").unwrap();
-        set_shadow(main_window, true).unwrap();
+        
+        tauri::async_runtime::spawn(async move {
+            // Wait until GLOBAL_DOM_READY is true before continuing
+            while !unsafe { GLOBAL_DOM_READY } {
+                std::thread::sleep(std::time::Duration::from_millis(200));
+            }
+            main_window.show().unwrap();
+            set_shadow(main_window, true).unwrap();
+        });
         #[cfg(desktop)]
         app.handle().plugin(tauri_plugin_system_info::init())?;
         Ok(())
     })
-        .invoke_handler(tauri::generate_handler![get_all_java_versions])
+        .invoke_handler(tauri::generate_handler![get_all_java_versions, dom_started])
         .plugin(tauri_plugin_upload::init())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
